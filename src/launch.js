@@ -8,6 +8,7 @@
 // closes) asks again.
 
 import { getIdentity, setIdentity, hasIdentity } from "./state.js";
+import { resolveCanonicalName } from "./xapiProfile.js";
 
 export class Launch {
   constructor({ onEnter } = {}) {
@@ -16,6 +17,8 @@ export class Launch {
     this.form = document.getElementById("launch-form");
     this.nameInput = document.getElementById("launch-name");
     this.emailInput = document.getElementById("launch-email");
+    this.submitBtn = this.form.querySelector('button[type="submit"]');
+    this._submitting = false;
 
     this.form.addEventListener("submit", (e) => this._onSubmit(e));
   }
@@ -37,14 +40,29 @@ export class Launch {
     return false;
   }
 
-  _onSubmit(e) {
+  async _onSubmit(e) {
     e.preventDefault();
-    const name = this.nameInput.value.trim();
+    if (this._submitting) return;
+    const typedName = this.nameInput.value.trim();
     // Normalize the email: it's the learner's xAPI identity (mbox), so trim and
     // lowercase it. That way "Bob@Email.com" and "bob@email.com" resolve to the
     // SAME learner and progress resumes regardless of how they typed it.
     const email = this.emailInput.value.trim().toLowerCase();
-    if (!name || !email) return;
+    if (!typedName || !email) return;
+
+    // "First name wins": ask the LRS for the canonical name on file for this
+    // email. If one exists it wins; otherwise the typed name becomes canonical.
+    // Involves one quick round trip, so disable the button meanwhile.
+    this._submitting = true;
+    const originalLabel = this.submitBtn.textContent;
+    this.submitBtn.disabled = true;
+    this.submitBtn.textContent = "Signing in…";
+
+    const name = await resolveCanonicalName(typedName, email);
+
+    this.submitBtn.disabled = false;
+    this.submitBtn.textContent = originalLabel;
+    this._submitting = false;
 
     setIdentity({ name, email });
     this._hide();

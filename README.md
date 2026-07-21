@@ -44,13 +44,15 @@ capstone/
     gating.js               # rule-based lock/unlock (entry -> core -> final)
     xapi.js                 # client helper: POSTs statements to /api/track
     launch.js               # name/email gate (learner identity)
-    state.js                # progress persistence: localStorage + LRS sync
+    state.js                # progress persistence: sessionStorage cache + LRS sync
     xapiState.js            # client for the xAPI State API (resume) via /api/state
+    xapiProfile.js          # client for the Agent Profile API (canonical name)
     authoring.js            # AUTHORING MODE — read yaw/pitch to place hotspots
     styles.css
   api/
     track.js                # serverless proxy: statements -> Veracity /statements
     state.js                # serverless proxy: progress doc <-> Veracity State API
+    profile.js              # serverless proxy: canonical name <-> Agent Profile API
   vercel.json
   .env.local.example        # documents required env vars (no real values)
   package.json
@@ -143,10 +145,22 @@ in `hotspots.config.js` without touching the logic.
 
 ---
 
+## Learner identity ("first name wins")
+
+The learner is identified by their **email** (`mbox`), normalized to lowercase +
+trimmed at login — so `Bob@Email.com` and `bob@email.com` are the same person.
+
+The display **name** is made consistent via the xAPI **Agent Profile API**: the
+first name a given email logs in with is stored (keyed by email) and reused for
+every statement afterward, no matter what name they type on a later device. Flow:
+browser → `/api/profile` → Veracity `.../agents/profile`. A full `?reset=1` wipe
+clears the stored name so it can be set again; the lighter HUD reset keeps it.
+
 ## What gets tracked (xAPI)
 
 All statements flow: browser → `/api/track` → Veracity. Actor is
-`{ mbox: "mailto:<email>", name: "<name>" }` from the launch screen.
+`{ mbox: "mailto:<email>", name: "<canonical name>" }` — email from the launch
+screen, name resolved by the "first name wins" rule above.
 
 - **Popup opened** → `experienced` for that hotspot's activity.
 - **Checkbox checked** → `completed` for that activity, with

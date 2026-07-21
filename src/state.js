@@ -22,6 +22,7 @@
 // surfaces a warning, and pending writes retry.
 
 import { loadStateDoc, saveStateDoc, deleteStateDoc } from "./xapiState.js";
+import { deleteProfile } from "./xapiProfile.js";
 
 // Session-scoped cache (clears on tab close). NOT localStorage — that is
 // intentional; see the header note above.
@@ -103,6 +104,11 @@ export function resetAll() {
   if (id && id.email) {
     deleteStateDoc(id).catch((e) =>
       console.warn("[state] LRS state delete failed:", e)
+    );
+    // Full wipe also clears the canonical name, so "first name wins" can be
+    // re-tested from scratch. (The lighter HUD reset keeps identity + name.)
+    deleteProfile(id.email).catch((e) =>
+      console.warn("[state] LRS profile delete failed:", e)
     );
   }
 }
