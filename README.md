@@ -44,11 +44,13 @@ capstone/
     gating.js               # rule-based lock/unlock (entry -> core -> final)
     xapi.js                 # client helper: POSTs statements to /api/track
     launch.js               # name/email gate (learner identity)
-    state.js                # progress persistence (localStorage)
+    state.js                # progress persistence: localStorage + LRS sync
+    xapiState.js            # client for the xAPI State API (resume) via /api/state
     authoring.js            # AUTHORING MODE — read yaw/pitch to place hotspots
     styles.css
   api/
-    track.js                # serverless proxy: attaches Veracity creds, forwards
+    track.js                # serverless proxy: statements -> Veracity /statements
+    state.js                # serverless proxy: progress doc <-> Veracity State API
   vercel.json
   .env.local.example        # documents required env vars (no real values)
   package.json
@@ -158,16 +160,31 @@ Activity IRIs are built from one base constant (`ACTIVITY_BASE` in
 
 ---
 
-## Progress persistence
+## Progress persistence (two layers, read + write)
 
-Learner identity and completed hotspots are stored in **localStorage**, so a
-refresh or return resumes exactly where the learner left off (and re-locks /
-unlocks correctly). The storage layer ([`src/state.js`](src/state.js)) is small
-and self-contained so it could later be swapped for the xAPI **State API**
-without rewriting the app — that round-trip is intentionally **not** built yet.
+Progress is stored in two places, and [`src/state.js`](src/state.js) keeps them
+in sync:
+
+1. **localStorage** — synchronous and offline-capable. The UI reads this
+   directly, so it never waits on the network. Identity + completed hotspots
+   live here for instant resume on the same browser.
+2. **Veracity LRS via the xAPI State API** — the durable, cross-device source of
+   truth. This is the **read** direction: on entry the app pulls the learner's
+   stored progress document and merges it in (`hydrateFromLRS`), so a learner who
+   started on one device resumes on another. On every completion it **writes**
+   the updated document back.
+
+Because completion is monotonic (once done, always done), merging local + remote
+is a conflict-free **union** of completed ids. If the LRS is unreachable,
+everything still works off localStorage and the app just logs a warning.
+
+Flow: browser ⇄ `/api/state` ⇄ Veracity `.../activities/state`. The State API
+base URL is **derived** from `VERACITY_ENDPOINT` (swap `/statements` for
+`/activities/state`), so there is **no extra environment variable** to set.
 
 The HUD (bottom-left) shows progress and a **Reset** button (clears completions,
-keeps identity) for testing.
+keeps identity); it also deletes the LRS progress document. The full `?reset=1`
+wipe clears identity + progress locally and in the LRS.
 
 ---
 
@@ -203,10 +220,11 @@ vercel deploy --prod       # promote to Production
 **Built:** launch/identity gate, panorama viewer with drag look-around, all
 seven hotspots, authoring mode, hover highlight, click-to-open popup with
 checkbox completion, entry→core→final gating, the `/api/track` proxy with a
-working xAPI send, and localStorage persistence.
+working xAPI send, localStorage persistence, and **xAPI State API resume**
+(read + write) via the `/api/state` proxy for cross-device progress.
 
 **Placeholder:** the lesson copy inside each popup, and the hotspot positions
 (replace via authoring mode).
 
-**Not built (by design):** the xAPI State API resume round-trip; any framework
-or extra build complexity; analytics or content beyond the seven hotspots.
+**Not built (by design):** any framework or extra build complexity; analytics or
+content beyond the seven hotspots.

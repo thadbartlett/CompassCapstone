@@ -9,7 +9,12 @@ import { Interactions } from "./interactions.js";
 import { Authoring } from "./authoring.js";
 import { Launch } from "./launch.js";
 import { HOTSPOTS } from "./hotspots.config.js";
-import { getCompletedIds, resetProgressKeepIdentity, resetAll } from "./state.js";
+import {
+  getCompletedIds,
+  resetProgressKeepIdentity,
+  resetAll,
+  hydrateFromLRS,
+} from "./state.js";
 
 const PANORAMA_URL = "/public/academic-room.png";
 
@@ -68,6 +73,17 @@ function enterExperience() {
   // Debug handle (no secrets are ever on the client). Handy for verifying the
   // viewer from the console; safe to leave in a shell build.
   window.capstone = { viewer, hotspots, interactions };
+
+  // Pull any progress stored in the LRS (cross-device resume) and merge it in,
+  // then refresh markers/HUD. Non-blocking: the UI already rendered from the
+  // local cache; this just catches it up if the learner progressed elsewhere.
+  hydrateFromLRS().then(({ changed }) => {
+    if (changed) {
+      hotspots.refreshStates();
+      updateHud();
+      console.debug("[capstone] resumed progress from the LRS");
+    }
+  });
 }
 
 // HUD reset.
