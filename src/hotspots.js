@@ -29,6 +29,7 @@ export class Hotspots {
       el.type = "button";
       el.className = "hotspot";
       el.dataset.id = hotspot.id;
+      el.dataset.role = hotspot.role; // entry | core | final — drives marker color
       el.style.setProperty("--hit", `${hotspot.hitRadius || 34}px`);
       el.innerHTML = `
         <span class="hotspot-ring"></span>

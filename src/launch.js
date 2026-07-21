@@ -40,7 +40,10 @@ export class Launch {
   _onSubmit(e) {
     e.preventDefault();
     const name = this.nameInput.value.trim();
-    const email = this.emailInput.value.trim();
+    // Normalize the email: it's the learner's xAPI identity (mbox), so trim and
+    // lowercase it. That way "Bob@Email.com" and "bob@email.com" resolve to the
+    // SAME learner and progress resumes regardless of how they typed it.
+    const email = this.emailInput.value.trim().toLowerCase();
     if (!name || !email) return;
 
     setIdentity({ name, email });

@@ -6,7 +6,10 @@
   --muted: #9aa7b2;
   --accent: #4bb3ff;
   --accent-glow: rgba(75, 179, 255, 0.55);
-  --gold: #e8c069;
+  --gold: #e8c069; /* final marker — richer gold (brass compass) */
+  --gold-glow: rgba(232, 192, 105, 0.5);
+  --gold-light: #f1ddac; /* core markers — very light gold */
+  --gold-light-glow: rgba(241, 221, 172, 0.45);
   --done: #57d98a;
   --card: #171c22;
   --card-border: #2a323b;
@@ -128,6 +131,26 @@ body {
   100% {
     opacity: 0;
   }
+}
+
+/* Role-based colors for the ACTIVE (unlocked) pulse.
+   entry -> blue (default), core -> very light gold, final -> richer gold.
+   Completed (green) and locked (gray) states are unaffected by role. */
+.hotspot.is-unlocked[data-role="core"] .hotspot-ring {
+  border-color: var(--gold-light);
+  box-shadow: 0 0 12px var(--gold-light-glow);
+}
+.hotspot.is-unlocked[data-role="core"] .hotspot-dot {
+  background: var(--gold-light);
+  box-shadow: 0 0 10px var(--gold-light-glow);
+}
+.hotspot.is-unlocked[data-role="final"] .hotspot-ring {
+  border-color: var(--gold);
+  box-shadow: 0 0 12px var(--gold-glow);
+}
+.hotspot.is-unlocked[data-role="final"] .hotspot-dot {
+  background: var(--gold);
+  box-shadow: 0 0 10px var(--gold-glow);
 }
 
 /* Hover highlight (unlocked + complete are interactive). */
@@ -255,11 +278,18 @@ body {
 .launch-card button:hover {
   filter: brightness(1.08);
 }
-.launch-fine {
-  margin: 14px 0 0;
-  font-size: 12px;
+.launch-hint {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border-left: 3px solid var(--gold);
+  background: rgba(232, 192, 105, 0.08);
+  border-radius: 6px;
+  font-size: 13px;
+  line-height: 1.45;
   color: var(--muted);
-  text-align: center;
+}
+.launch-hint strong {
+  color: var(--gold);
 }
 
 /* ---- Modal ----------------------------------------------------------- */
