@@ -1,0 +1,12 @@
+# Secrets — never commit real LRS credentials.
+.env
+.env.local
+.env*.local
+
+# Vercel
+.vercel
+
+# OS / editor
+.DS_Store
+Thumbs.db
+node_modules

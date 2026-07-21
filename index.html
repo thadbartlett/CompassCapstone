@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+    />
+    <title>Capstone — 360° Orientation</title>
+    <link rel="stylesheet" href="/src/styles.css" />
+
+    <!-- Three.js from CDN via import map. No build step required. -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <!-- 360 viewer canvas mounts here -->
+    <div id="viewer"></div>
+
+    <!-- Hotspot markers (HTML overlay) mount here -->
+    <div id="hotspot-layer"></div>
+
+    <!-- Authoring-mode readout -->
+    <div id="author-readout" class="author-readout hidden"></div>
+
+    <!-- Launch / identity screen -->
+    <div id="launch-screen" class="launch-screen">
+      <form id="launch-form" class="launch-card" autocomplete="on">
+        <div class="launch-brand">Capstone</div>
+        <h1>360° Orientation</h1>
+        <p class="launch-sub">
+          Welcome. Enter your name and email to begin. Drag to look around the
+          room, then click the glowing markers to explore.
+        </p>
+        <label for="launch-name">Full name</label>
+        <input id="launch-name" name="name" type="text" required placeholder="Jane Learner" />
+        <label for="launch-email">Email</label>
+        <input id="launch-email" name="email" type="email" required placeholder="jane@example.com" />
+        <button type="submit">Enter the experience</button>
+        <p class="launch-fine">Your progress is saved on this device.</p>
+      </form>
+    </div>
+
+    <!-- Interaction popup / modal -->
+    <div id="modal-backdrop" class="modal-backdrop hidden">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <button id="modal-close" class="modal-close" aria-label="Close">&times;</button>
+        <h2 id="modal-title">Title</h2>
+        <div id="modal-body" class="modal-body"></div>
+        <label class="modal-complete">
+          <input type="checkbox" id="modal-complete-checkbox" />
+          <span>Mark this section complete</span>
+        </label>
+        <div id="modal-status" class="modal-status"></div>
+      </div>
+    </div>
+
+    <!-- Small HUD: progress + reset -->
+    <div id="hud" class="hud hidden">
+      <span id="hud-progress">0 / 0 complete</span>
+      <button id="hud-reset" title="Reset progress on this device">Reset</button>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

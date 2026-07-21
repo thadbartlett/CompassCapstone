@@ -1,0 +1,13 @@
+{
+  "name": "capstone-360",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Capstone — browser-based 360° panorama training shell (Three.js + Vercel + xAPI).",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel deploy --prod"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
