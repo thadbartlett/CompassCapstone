@@ -62,11 +62,22 @@ export default async function handler(req, res) {
     if (req.method === "PUT") {
       let body = req.body;
       if (body && typeof body !== "string") body = JSON.stringify(body);
+      // The xAPI Agent Profile Resource REQUIRES a concurrency header on PUT
+      // (unlike the State Resource). "first name wins" only ever CREATES the
+      // document, so If-None-Match: * ("only if it doesn't already exist") is
+      // the correct precondition.
       const r = await fetch(url, {
         method: "PUT",
-        headers: { ...baseHeaders, "Content-Type": "application/json" },
+        headers: {
+          ...baseHeaders,
+          "Content-Type": "application/json",
+          "If-None-Match": "*",
+        },
         body: body || "{}",
       });
+      // 412 = it already exists (a concurrent first login won the race). That's
+      // fine for "first name wins" — the existing name stands.
+      if (r.status === 412) return res.status(409).json({ error: "already exists" });
       if (!r.ok) {
         const text = await r.text();
         console.error(`[profile] LRS PUT ${r.status}: ${text}`);

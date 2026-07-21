@@ -60,8 +60,16 @@ export async function resolveCanonicalName(typedName, email) {
   try {
     const profile = await loadProfile(email);
     if (profile && profile.name) return profile.name;
-    await saveProfile(email, { name: typedName });
-    return typedName;
+    try {
+      await saveProfile(email, { name: typedName });
+      return typedName;
+    } catch (saveErr) {
+      // A concurrent first login may have created it (409/precondition). Re-read
+      // and prefer the stored name so "first name wins" still holds.
+      const now = await loadProfile(email);
+      if (now && now.name) return now.name;
+      throw saveErr;
+    }
   } catch (err) {
     console.warn("[profile] could not resolve canonical name (using typed):", err);
     return typedName;
