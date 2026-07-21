@@ -1,21 +1,40 @@
 // state.js
 //
-// Progress persistence, in TWO layers:
+// Progress persistence. The **Veracity LRS (xAPI State API) is the source of
+// truth**; there is deliberately NO long-term local storage of progress.
 //
-//   1. localStorage  — synchronous, instant, offline-capable. The app reads
-//      this directly (isComplete/getCompletedIds are sync), so the UI never
-//      waits on the network.
-//   2. Veracity LRS via the xAPI State API — the durable, cross-device source
-//      of truth. On startup we pull the learner's stored progress and merge it
-//      in (hydrateFromLRS); on every change we push the updated document up.
+//   - On startup we pull the learner's stored progress from the LRS
+//     (hydrateFromLRS); on every change we push the updated document back up.
+//   - A small **sessionStorage** cache holds identity + progress for THIS
+//     browsing session only. It gives instant paint on refresh and guards
+//     against a complete-then-immediately-refresh race — but it clears when the
+//     tab/browser closes, so nothing lingers on a shared or public machine, and
+//     a fresh session always loads authoritatively from the LRS.
 //
-// Completion is monotonic (once done, always done), so merging is a simple
-// union of local + remote completed ids — no conflicts, safe across devices.
-// If the LRS is unreachable, everything still works off localStorage.
+// Completion is monotonic (once done, always done). Because the session cache
+// only ever holds this session's own knowledge, merging it with the LRS as a
+// union is safe: cross-session/cross-device truth comes from the LRS, while any
+// just-made completion is preserved. A reset in the LRS is reflected on the next
+// session (the cache is gone), so stale completions can't be resurrected.
+//
+// The app requires a live connection to Veracity to load and record progress;
+// if the LRS is unreachable the UI still functions off the session cache and
+// surfaces a warning, and pending writes retry.
 
 import { loadStateDoc, saveStateDoc, deleteStateDoc } from "./xapiState.js";
 
+// Session-scoped cache (clears on tab close). NOT localStorage — that is
+// intentional; see the header note above.
+const store = window.sessionStorage;
 const STORAGE_KEY = "capstone.progress.v1";
+
+// One-time cleanup: earlier builds persisted progress in localStorage. Remove
+// any leftover so nothing durable is left behind on the device.
+try {
+  window.localStorage.removeItem(STORAGE_KEY);
+} catch {
+  /* ignore */
+}
 
 function emptyState() {
   return {
@@ -26,7 +45,7 @@ function emptyState() {
 
 function load() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = store.getItem(STORAGE_KEY);
     if (!raw) return emptyState();
     const parsed = JSON.parse(raw);
     return {
@@ -34,16 +53,16 @@ function load() {
       completed: parsed.completed ?? {},
     };
   } catch (err) {
-    console.warn("[state] could not read stored progress:", err);
+    console.warn("[state] could not read session cache:", err);
     return emptyState();
   }
 }
 
 function save(state) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    store.setItem(STORAGE_KEY, JSON.stringify(state));
   } catch (err) {
-    console.warn("[state] could not persist progress:", err);
+    console.warn("[state] could not write session cache:", err);
   }
 }
 
@@ -102,15 +121,24 @@ export function resetProgressKeepIdentity() {
 
 // ---- LRS sync (xAPI State API) ----------------------------------------
 
-// Push the current progress document to the LRS. Fire-and-forget: failures are
-// logged, never block the UI, and localStorage still holds the truth locally.
-function pushStateToLRS() {
+// Push the current progress document to the LRS. Non-blocking, with one retry.
+// Each push sends the FULL document, so a later successful push also carries any
+// earlier completion whose push failed — giving eventual consistency without a
+// queue. The session cache holds progress in the meantime.
+function pushStateToLRS(attempt = 0) {
   const id = _state.identity;
   if (!id || !id.email) return;
   saveStateDoc(id, {
     completed: _state.completed,
     updatedAt: new Date().toISOString(),
-  }).catch((e) => console.warn("[state] LRS state save failed:", e));
+  }).catch((e) => {
+    if (attempt < 1) {
+      console.warn("[state] LRS state save failed, retrying…", e);
+      setTimeout(() => pushStateToLRS(attempt + 1), 1500);
+    } else {
+      console.warn("[state] LRS state save failed (will retry on next change):", e);
+    }
+  });
 }
 
 // Pull the learner's stored progress from the LRS and merge it into local

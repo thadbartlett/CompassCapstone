@@ -160,31 +160,37 @@ Activity IRIs are built from one base constant (`ACTIVITY_BASE` in
 
 ---
 
-## Progress persistence (two layers, read + write)
+## Progress persistence (LRS is the source of truth)
 
-Progress is stored in two places, and [`src/state.js`](src/state.js) keeps them
-in sync:
+Progress lives in the **Veracity LRS**, not on the device. [`src/state.js`](src/state.js)
+manages it:
 
-1. **localStorage** — synchronous and offline-capable. The UI reads this
-   directly, so it never waits on the network. Identity + completed hotspots
-   live here for instant resume on the same browser.
-2. **Veracity LRS via the xAPI State API** — the durable, cross-device source of
-   truth. This is the **read** direction: on entry the app pulls the learner's
-   stored progress document and merges it in (`hydrateFromLRS`), so a learner who
-   started on one device resumes on another. On every completion it **writes**
-   the updated document back.
-
-Because completion is monotonic (once done, always done), merging local + remote
-is a conflict-free **union** of completed ids. If the LRS is unreachable,
-everything still works off localStorage and the app just logs a warning.
+- **Read (resume):** on entry the app pulls the learner's stored progress
+  document from the LRS (`hydrateFromLRS`), so someone who started on one device
+  resumes on another.
+- **Write:** every completion pushes the updated document back (with one retry).
 
 Flow: browser ⇄ `/api/state` ⇄ Veracity `.../activities/state`. The State API
 base URL is **derived** from `VERACITY_ENDPOINT` (swap `/statements` for
 `/activities/state`), so there is **no extra environment variable** to set.
 
-The HUD (bottom-left) shows progress and a **Reset** button (clears completions,
-keeps identity); it also deletes the LRS progress document. The full `?reset=1`
-wipe clears identity + progress locally and in the LRS.
+**No long-term local storage of progress.** A small **sessionStorage** cache
+holds identity + progress for the current browsing session only — it gives
+instant paint on refresh and avoids a complete-then-refresh race, but it clears
+when the tab/browser closes. So nothing lingers on a shared or public machine,
+and a fresh session always loads authoritatively from the LRS (a reset in the
+LRS can't be resurrected from a stale local copy). Because the session cache
+only holds this session's own knowledge, merging it with the LRS as a union is
+safe.
+
+The experience **requires a live connection** to Veracity to load and record
+progress. If the LRS is unreachable the UI still runs off the session cache,
+shows an "Offline — progress may not be saved" note in the HUD, and retries
+pending writes.
+
+The HUD (bottom-left) shows progress, a live **sync status**, and a **Reset**
+button (clears completions in the LRS too, keeps identity). The full `?reset=1`
+wipe clears identity + progress in the session and in the LRS.
 
 ---
 
@@ -220,8 +226,9 @@ vercel deploy --prod       # promote to Production
 **Built:** launch/identity gate, panorama viewer with drag look-around, all
 seven hotspots, authoring mode, hover highlight, click-to-open popup with
 checkbox completion, entry→core→final gating, the `/api/track` proxy with a
-working xAPI send, localStorage persistence, and **xAPI State API resume**
-(read + write) via the `/api/state` proxy for cross-device progress.
+working xAPI send, and **xAPI State API resume** (read + write) via the
+`/api/state` proxy — the LRS is the source of truth for progress, with a
+session-only cache (no long-term local storage).
 
 **Placeholder:** the lesson copy inside each popup, and the hotspot positions
 (replace via authoring mode).

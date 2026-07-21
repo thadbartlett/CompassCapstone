@@ -35,8 +35,14 @@ const readoutEl = document.getElementById("author-readout");
 const hudEl = document.getElementById("hud");
 const hudProgress = document.getElementById("hud-progress");
 const hudReset = document.getElementById("hud-reset");
+const syncStatus = document.getElementById("sync-status");
 
 let viewer, hotspots, interactions;
+
+function setSync(text, kind) {
+  syncStatus.textContent = text || "";
+  syncStatus.className = "sync-status" + (kind ? " " + kind : "");
+}
 
 function updateHud() {
   const done = getCompletedIds().filter((id) =>
@@ -74,21 +80,34 @@ function enterExperience() {
   // viewer from the console; safe to leave in a shell build.
   window.capstone = { viewer, hotspots, interactions };
 
-  // Pull any progress stored in the LRS (cross-device resume) and merge it in,
-  // then refresh markers/HUD. Non-blocking: the UI already rendered from the
-  // local cache; this just catches it up if the learner progressed elsewhere.
-  hydrateFromLRS().then(({ changed }) => {
+  // The LRS is the source of truth. Pull the learner's stored progress and
+  // reconcile the UI. On a cold load (no completions cached this session yet),
+  // show a brief "Syncing…" note so a returning learner understands why gating
+  // may update a moment after load.
+  const coldLoad = getCompletedIds().length === 0;
+  if (coldLoad) setSync("Syncing…", "syncing");
+
+  hydrateFromLRS().then(({ changed, error }) => {
+    if (error) {
+      // Required backend is unreachable — warn, but let them proceed off the
+      // session cache; writes will retry.
+      setSync("Offline — progress may not be saved", "error");
+      return;
+    }
     if (changed) {
       hotspots.refreshStates();
       updateHud();
       console.debug("[capstone] resumed progress from the LRS");
     }
+    // Briefly confirm, then clear.
+    setSync("Synced", "");
+    setTimeout(() => setSync(""), 1500);
   });
 }
 
 // HUD reset.
 hudReset.addEventListener("click", () => {
-  if (!confirm("Reset all progress on this device? (Your name/email stays.)")) {
+  if (!confirm("Reset your progress? This clears it in the LRS too. (Your name/email stays.)")) {
     return;
   }
   resetProgressKeepIdentity();

@@ -3,7 +3,9 @@
 // Name/email gate that establishes learner identity. Because there is no LMS,
 // we ask the learner who they are on first load, store it, and use the email
 // to form the xAPI actor (mbox = mailto:<email>). A returning learner (identity
-// already in localStorage) skips straight past this screen.
+// already known this session) skips straight past this screen. Identity lives
+// in sessionStorage, so a new session (or a shared machine after the tab
+// closes) asks again.
 
 import { getIdentity, setIdentity, hasIdentity } from "./state.js";
 

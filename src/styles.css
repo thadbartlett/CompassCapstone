@@ -360,6 +360,21 @@ body {
   font-size: 13px;
   font-weight: 600;
 }
+.sync-status {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.sync-status:empty {
+  display: none;
+}
+.sync-status.syncing {
+  color: var(--accent);
+}
+.sync-status.error {
+  color: #ff7a7a;
+}
+
 .hud button {
   border: 1px solid var(--card-border);
   background: transparent;
