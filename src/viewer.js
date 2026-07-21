@@ -205,8 +205,10 @@ export class Viewer {
 
     // Fixed drag sensitivity (FOV never changes, so no scaling needed).
     const sens = 0.12;
-    this.yaw += dx * sens; // drag right -> look right
-    this.pitch += dy * sens; // drag down -> look down
+    // "Grab the world" feel: dragging right pulls the scene right, so the view
+    // pans left (yaw decreases). Vertical stays direct (drag down -> look down).
+    this.yaw -= dx * sens;
+    this.pitch += dy * sens;
   }
 
   _onPointerUp(e) {
