@@ -80,8 +80,8 @@ export const HOTSPOTS = [
     label: "Anchored at Home",
     role: "core",
     // Study table with anchor, lamp, Bible, and family photo.
-    yaw: -123.7,
-    pitch: -7.4,
+    yaw: -128.8,
+    pitch: -17.5,
     hitRadius: 34,
     body: `
       <p>Placeholder copy for "Anchored at Home".</p>

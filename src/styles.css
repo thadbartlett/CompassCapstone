@@ -134,8 +134,18 @@ body {
   }
 }
 
-/* Role-based colors for the ACTIVE (unlocked) pulse. entry + core use the base
-   light-gold pulse; final is a richer gold. Locked (gray) states unaffected. */
+/* Role-based colors for the ACTIVE (unlocked) pulse. entry pulses green (it's
+   the "start here" marker) until completed, when it turns gold like the rest;
+   core uses the base light-gold pulse; final is a richer gold. Locked (gray)
+   and complete (gold) states are handled below. */
+.hotspot.is-unlocked[data-role="entry"] .hotspot-ring {
+  border-color: var(--done);
+  box-shadow: 0 0 12px rgba(87, 217, 138, 0.45);
+}
+.hotspot.is-unlocked[data-role="entry"] .hotspot-dot {
+  background: var(--done);
+  box-shadow: 0 0 10px rgba(87, 217, 138, 0.45);
+}
 .hotspot.is-unlocked[data-role="final"] .hotspot-ring {
   border-color: var(--gold);
   box-shadow: 0 0 12px var(--gold-glow);

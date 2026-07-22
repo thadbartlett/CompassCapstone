@@ -111,8 +111,9 @@ Open **http://localhost:3000**.
 
 A visual placement tool, since you can't give pixel positions blind.
 
-1. Open the site with **`?edit=1`** in the URL, **or** press **`E`** while
-   inside. A panel appears (top-left) listing all seven hotspots.
+1. Open the site with **`?edit=1`** in the URL. A panel appears (top-left)
+   listing all seven hotspots. (There is no keyboard shortcut, so learners
+   can't stumble into authoring mode.)
 2. **Click a hotspot in the panel** to select it, then **click the matching
    object in the room** to drop it there. Or just **drag** a marker to nudge it.
    Drag empty space to look around as usual.

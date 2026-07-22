@@ -2,7 +2,8 @@
 //
 // AUTHORING MODE — the visual tool for placing hotspots.
 //
-// Toggle with ?edit=1 in the URL, or press "E" while inside. Then:
+// Enter authoring mode by adding ?edit=1 to the URL (no keyboard shortcut, so
+// learners can't stumble into it). Then:
 //   - Click a hotspot in the panel to SELECT it, then click in the room to drop
 //     it there. Or just DRAG a marker to move it.
 //   - Drag empty space to look around as usual.
@@ -35,13 +36,9 @@ export class Authoring {
     this.overrides = this._load();
     this._applyOverrides();
 
-    // Toggle with "E" (ignored while typing in a field).
-    document.addEventListener("keydown", (e) => {
-      if (e.key.toLowerCase() !== "e") return;
-      const t = e.target;
-      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA")) return;
-      this.toggle();
-    });
+    // Authoring mode is entered ONLY via the ?edit=1 URL param — the "E"
+    // keyboard toggle is intentionally disabled so learners can't stumble into
+    // it and start moving markers.
 
     // Clicking empty room places the selected hotspot (and always updates the
     // readout).
@@ -210,7 +207,7 @@ export class Authoring {
     this.panel.innerHTML = `
       <div class="ap-head">
         <span class="ap-title">AUTHORING</span>
-        <button class="ap-x" data-act="exit" title="Exit (E)">exit</button>
+        <button class="ap-x" data-act="exit" title="Exit authoring">exit</button>
       </div>
       <div class="ap-hint">${hint}</div>
       <ul class="ap-list">${rows}</ul>
