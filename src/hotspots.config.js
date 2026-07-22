@@ -31,16 +31,16 @@ export const COURSE_ACTIVITY_NAME = "Capstone Orientation";
 // Default hit radius (pixels) for a marker if one isn't specified.
 export const DEFAULT_HIT_RADIUS = 34;
 
-// The seven hotspots. Positions are PLACEHOLDERS spaced around the sphere so
-// nothing overlaps until you reposition them with authoring mode.
+// The seven hotspots. Positions (yaw/pitch) were set from the real image via
+// authoring mode; re-run authoring mode to fine-tune any of them.
 export const HOTSPOTS = [
   {
     id: "welcome",
     label: "Welcome to Capstone",
     role: "entry",
     // Open arched doorway. Live from start.
-    yaw: 0,
-    pitch: 0,
+    yaw: -90.5,
+    pitch: 26.4,
     hitRadius: 34,
     body: `
       <p><strong>Welcome!</strong> This is placeholder copy for the entry
@@ -54,8 +54,8 @@ export const HOTSPOTS = [
     label: "Daily Schedule",
     role: "core",
     // Wall clock and schedule board.
-    yaw: -60,
-    pitch: 8,
+    yaw: 110.5,
+    pitch: 16.4,
     hitRadius: 34,
     body: `
       <p>Placeholder copy for the daily schedule.</p>
@@ -67,8 +67,8 @@ export const HOTSPOTS = [
     label: "Academic Expectations",
     role: "core",
     // Lectern with open planner and books.
-    yaw: -120,
-    pitch: -4,
+    yaw: 179.2,
+    pitch: -14.2,
     hitRadius: 34,
     body: `
       <p>Placeholder copy for academic expectations.</p>
@@ -80,8 +80,8 @@ export const HOTSPOTS = [
     label: "Anchored at Home",
     role: "core",
     // Study table with anchor, lamp, Bible, and family photo.
-    yaw: 180,
-    pitch: -6,
+    yaw: -123.7,
+    pitch: -7.4,
     hitRadius: 34,
     body: `
       <p>Placeholder copy for "Anchored at Home".</p>
@@ -93,8 +93,8 @@ export const HOTSPOTS = [
     label: "Rules for Capstone Students",
     role: "core",
     // Framed checklist board on the right wall.
-    yaw: 120,
-    pitch: 6,
+    yaw: 29.7,
+    pitch: 8.1,
     hitRadius: 34,
     body: `
       <p>Placeholder copy for the rules.</p>
@@ -106,8 +106,8 @@ export const HOTSPOTS = [
     label: "Academic Overview",
     role: "core",
     // Large academic bookcase.
-    yaw: 60,
-    pitch: 2,
+    yaw: -34.3,
+    pitch: 5.2,
     hitRadius: 34,
     body: `
       <p>Placeholder copy for the academic overview.</p>
@@ -119,8 +119,8 @@ export const HOTSPOTS = [
     label: "Final Message",
     role: "final",
     // Brass compass and sealed scroll on the round table.
-    yaw: 0,
-    pitch: -35,
+    yaw: 47,
+    pitch: -36.4,
     hitRadius: 34,
     body: `
       <p>Placeholder copy for the final message.</p>
