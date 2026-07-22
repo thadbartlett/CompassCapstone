@@ -41,6 +41,9 @@ function emptyState() {
   return {
     identity: null, // { name, email }
     completed: {}, // { [hotspotId]: true }
+    // Academic Overview: the parent's selected student grades + which videos
+    // they've watched. { grades: number[], watched: { [videoId]: true } }
+    academicOverview: { grades: [], watched: {} },
   };
 }
 
@@ -49,9 +52,14 @@ function load() {
     const raw = store.getItem(STORAGE_KEY);
     if (!raw) return emptyState();
     const parsed = JSON.parse(raw);
+    const ao = parsed.academicOverview || {};
     return {
       identity: parsed.identity ?? null,
       completed: parsed.completed ?? {},
+      academicOverview: {
+        grades: Array.isArray(ao.grades) ? ao.grades : [],
+        watched: ao.watched ?? {},
+      },
     };
   } catch (err) {
     console.warn("[state] could not read session cache:", err);
@@ -97,6 +105,25 @@ export function getCompletedIds() {
   return Object.keys(_state.completed).filter((id) => _state.completed[id]);
 }
 
+// ---- Academic Overview (grades + watched videos) ----------------------
+
+export function getAcademicOverview() {
+  const ao = _state.academicOverview || { grades: [], watched: {} };
+  return { grades: [...ao.grades], watched: { ...ao.watched } };
+}
+
+export function setGrades(grades) {
+  _state.academicOverview.grades = [...grades];
+  save(_state);
+  pushStateToLRS();
+}
+
+export function markVideoWatched(videoId) {
+  _state.academicOverview.watched[videoId] = true;
+  save(_state);
+  pushStateToLRS();
+}
+
 export function resetAll() {
   const id = _state.identity;
   _state = emptyState();
@@ -116,7 +143,7 @@ export function resetAll() {
 // Clear completions but keep the learner's identity (used by the HUD reset).
 export function resetProgressKeepIdentity() {
   const id = _state.identity;
-  _state = { identity: id, completed: {} };
+  _state = { identity: id, completed: {}, academicOverview: { grades: [], watched: {} } };
   save(_state);
   if (id && id.email) {
     deleteStateDoc(id).catch((e) =>
@@ -136,6 +163,7 @@ function pushStateToLRS(attempt = 0) {
   if (!id || !id.email) return;
   saveStateDoc(id, {
     completed: _state.completed,
+    academicOverview: _state.academicOverview,
     updatedAt: new Date().toISOString(),
   }).catch((e) => {
     if (attempt < 1) {
@@ -164,8 +192,27 @@ export async function hydrateFromLRS() {
           changed = true;
         }
       }
-      if (changed) save(_state);
     }
+    // Merge Academic Overview: union of watched videos; grades come from the LRS
+    // if it has any (cross-device selection), otherwise keep the local choice.
+    if (doc && doc.academicOverview) {
+      const remote = doc.academicOverview;
+      for (const vid of Object.keys(remote.watched || {})) {
+        if (remote.watched[vid] && !_state.academicOverview.watched[vid]) {
+          _state.academicOverview.watched[vid] = true;
+          changed = true;
+        }
+      }
+      if (
+        Array.isArray(remote.grades) &&
+        remote.grades.length &&
+        _state.academicOverview.grades.length === 0
+      ) {
+        _state.academicOverview.grades = [...remote.grades];
+        changed = true;
+      }
+    }
+    if (changed) save(_state);
     // Ensure the LRS reflects any local-only completions too (superset), and
     // creates the document on first visit.
     pushStateToLRS();

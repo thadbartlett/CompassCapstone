@@ -10,6 +10,7 @@ import { ACTIVITY_BASE } from "./hotspots.config.js";
 import { isComplete, markComplete } from "./state.js";
 import { areAllCoreComplete } from "./gating.js";
 import { sendExperienced, sendCompleted, sendCourseCompleted } from "./xapi.js";
+import { renderAcademicVideos } from "./academicVideos.js";
 
 function activityIdFor(hotspot) {
   return `${ACTIVITY_BASE}/${hotspot.id}`;
@@ -22,6 +23,7 @@ export class Interactions {
     this.backdrop = document.getElementById("modal-backdrop");
     this.titleEl = document.getElementById("modal-title");
     this.bodyEl = document.getElementById("modal-body");
+    this.completeRow = document.querySelector(".modal-complete");
     this.checkbox = document.getElementById("modal-complete-checkbox");
     this.statusEl = document.getElementById("modal-status");
     this.closeBtn = document.getElementById("modal-close");
@@ -43,13 +45,27 @@ export class Interactions {
   open(hotspot) {
     this._current = hotspot;
     this.titleEl.textContent = hotspot.label;
-    this.bodyEl.innerHTML = hotspot.body || "<p>(placeholder content)</p>";
 
-    const already = isComplete(hotspot.id);
-    this.checkbox.checked = already;
-    this.checkbox.disabled = already; // can't un-complete in this shell
-    this.statusEl.textContent = already ? "Completed ✓" : "";
-    this.statusEl.classList.toggle("done", already);
+    if (hotspot.type === "videos") {
+      // Custom Academic Overview popup: grade selector + video list drive
+      // completion, so hide the generic checkbox row and status line.
+      this.completeRow.style.display = "none";
+      this.statusEl.style.display = "none";
+      renderAcademicVideos(this.bodyEl, hotspot, {
+        onComplete: () => this._complete(hotspot),
+      });
+    } else {
+      // Generic popup: body copy + a "mark complete" checkbox.
+      this.completeRow.style.display = "";
+      this.statusEl.style.display = "";
+      this.bodyEl.innerHTML = hotspot.body || "<p>(placeholder content)</p>";
+
+      const already = isComplete(hotspot.id);
+      this.checkbox.checked = already;
+      this.checkbox.disabled = already; // can't un-complete in this shell
+      this.statusEl.textContent = already ? "Completed ✓" : "";
+      this.statusEl.classList.toggle("done", already);
+    }
 
     this.backdrop.classList.remove("hidden");
 
@@ -65,25 +81,26 @@ export class Interactions {
   _onCheck() {
     const hotspot = this._current;
     if (!hotspot || !this.checkbox.checked) return;
+    this._complete(hotspot);
+  }
+
+  // Mark a hotspot complete: persist, fire xAPI, reflect in the modal, and let
+  // the app update gating/markers/HUD. Used by both the generic checkbox and
+  // the Academic Overview video flow.
+  _complete(hotspot) {
     if (isComplete(hotspot.id)) return;
 
-    // 1) Persist completion.
     markComplete(hotspot.id);
-
-    // 2) xAPI "completed" for this activity.
     sendCompleted(activityIdFor(hotspot), hotspot.label);
+    if (hotspot.role === "final") sendCourseCompleted();
 
-    // 3) If this was the FINAL hotspot, also send course-level completed.
-    if (hotspot.role === "final") {
-      sendCourseCompleted();
-    }
-
-    // 4) Reflect completed state in the modal.
+    // Reflect completed state on the generic checkbox/status (harmless/hidden
+    // for the video popup, which shows its own completion banner).
     this.checkbox.disabled = true;
+    this.checkbox.checked = true;
     this.statusEl.textContent = "Completed ✓";
     this.statusEl.classList.add("done");
 
-    // 5) Let the app update gating / markers / HUD.
     this.onCompleted(hotspot);
   }
 }

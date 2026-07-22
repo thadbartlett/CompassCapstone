@@ -109,10 +109,9 @@ export const HOTSPOTS = [
     yaw: -34.3,
     pitch: 5.2,
     hitRadius: 34,
-    body: `
-      <p>Placeholder copy for the academic overview.</p>
-      <p>A high-level look at the academic program.</p>
-    `,
+    // Custom popup: grade-driven video list (see academicVideos.js /
+    // videos.config.js). Completion = all grade-matched videos watched.
+    type: "videos",
   },
   {
     id: "final",
