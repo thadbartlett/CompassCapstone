@@ -109,17 +109,22 @@ Open **http://localhost:3000**.
 
 ## Authoring mode — placing the hotspots
 
-You can't give pixel positions blind, so use authoring mode to read off exact
-coordinates from **your** image:
+A visual placement tool, since you can't give pixel positions blind.
 
-1. Open the site with **`?edit=1`** in the URL (e.g.
-   `http://localhost:3000/?edit=1`), **or** press **`E`** while inside.
-2. **Click any object** in the panorama. The on-screen readout (top-left) and
-   the browser **console** print the exact `yaw` / `pitch` (degrees) and a
-   normalized direction vector for that point.
-3. Copy the `yaw:` / `pitch:` numbers into the matching hotspot in
-   [`src/hotspots.config.js`](src/hotspots.config.js).
-4. Reload. The marker now sits on that object.
+1. Open the site with **`?edit=1`** in the URL, **or** press **`E`** while
+   inside. A panel appears (top-left) listing all seven hotspots.
+2. **Click a hotspot in the panel** to select it, then **click the matching
+   object in the room** to drop it there. Or just **drag** a marker to nudge it.
+   Drag empty space to look around as usual.
+3. When everything's placed, click **"Copy positions"** — it copies a block of
+   all seven `yaw`/`pitch` values. Paste it into
+   [`src/hotspots.config.js`](src/hotspots.config.js) (or hand it to your dev),
+   commit, and deploy.
+
+Placements are saved in `localStorage` on your machine as you work (so a refresh
+won't lose them, and you can preview them in normal mode) — but they're **local
+until committed into `hotspots.config.js` and deployed**. **"Reset all"** clears
+them back to the config defaults.
 
 Coordinate convention: `yaw` = degrees around the room (0 faces the panorama's
 center/front, positive turns right, range −180…180); `pitch` = degrees up/down

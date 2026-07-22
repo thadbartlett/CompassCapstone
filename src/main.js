@@ -71,14 +71,14 @@ function enterExperience() {
   });
 
   // Authoring mode (for placing hotspots).
-  new Authoring(viewer, readoutEl);
+  const authoring = new Authoring(viewer, hotspots, readoutEl);
 
   hudEl.classList.remove("hidden");
   updateHud();
 
   // Debug handle (no secrets are ever on the client). Handy for verifying the
   // viewer from the console; safe to leave in a shell build.
-  window.capstone = { viewer, hotspots, interactions };
+  window.capstone = { viewer, hotspots, interactions, authoring };
 
   // The LRS is the source of truth. Pull the learner's stored progress and
   // reconcile the UI. On a cold load (no completions cached this session yet),

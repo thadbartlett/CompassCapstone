@@ -1,24 +1,41 @@
 // authoring.js
 //
-// AUTHORING MODE — the tool for placing hotspots.
+// AUTHORING MODE — the visual tool for placing hotspots.
 //
-// You (the author) can't hand me pixel coordinates because I can't see your
-// image. So: enable authoring mode, click any object in the panorama, and this
-// prints the exact { yaw, pitch } (degrees) and normalized direction vector of
-// that point — both to an on-screen readout AND to the browser console — ready
-// to paste into hotspots.config.js.
+// Toggle with ?edit=1 in the URL, or press "E" while inside. Then:
+//   - Click a hotspot in the panel to SELECT it, then click in the room to drop
+//     it there. Or just DRAG a marker to move it.
+//   - Drag empty space to look around as usual.
+//   - "Copy positions" copies a ready-to-paste block of all seven yaw/pitch
+//     values (hand it to your dev, or paste into hotspots.config.js).
 //
-// Toggle it two ways:
-//   - Add ?edit=1 to the URL, or
-//   - Press the "E" key while inside the experience.
+// Placements are held in localStorage on THIS machine so they survive refresh
+// and you can preview them in normal mode — but they are local until the values
+// are committed into hotspots.config.js and deployed. "Reset all" clears them.
+
+import { HOTSPOTS } from "./hotspots.config.js";
+
+const LS_KEY = "capstone.authoring.v1";
+const round1 = (v) => Math.round(v * 10) / 10;
 
 export class Authoring {
-  constructor(viewer, readoutEl) {
+  constructor(viewer, hotspots, panelEl) {
     this.viewer = viewer;
-    this.readoutEl = readoutEl;
+    this.hotspots = hotspots;
+    this.panel = panelEl;
     this.active = new URLSearchParams(location.search).get("edit") === "1";
+    this.selectedId = null;
+    this.lastClick = null;
 
-    // Toggle with the "E" key (ignored while typing in a field).
+    // Snapshot the config's original positions so "Reset all" can restore them.
+    this.original = {};
+    for (const h of HOTSPOTS) this.original[h.id] = { yaw: h.yaw, pitch: h.pitch };
+
+    // Load any saved placements and apply them to the live hotspots.
+    this.overrides = this._load();
+    this._applyOverrides();
+
+    // Toggle with "E" (ignored while typing in a field).
     document.addEventListener("keydown", (e) => {
       if (e.key.toLowerCase() !== "e") return;
       const t = e.target;
@@ -26,60 +43,196 @@ export class Authoring {
       this.toggle();
     });
 
-    // Report every panorama click while active.
-    this.viewer.onClick((yaw, pitch, dir) => {
-      if (!this.active) return;
-      this._report(yaw, pitch, dir);
+    // Clicking empty room places the selected hotspot (and always updates the
+    // readout).
+    this.viewer.onClick((yaw, pitch) => {
+      this.lastClick = { yaw, pitch };
+      if (this.active && this.selectedId) this._place(this.selectedId, yaw, pitch);
+      else this._render();
     });
 
-    this._applyVisibility();
+    // Wire edit hooks from the markers (select / live-drag / commit).
+    this.hotspots.setEditHooks({
+      onSelect: (h) => this.select(h.id),
+      onMove: () => this._render(), // live numbers while dragging (no save)
+      onCommit: (h) => {
+        this._recordOverride(h.id, h.yaw, h.pitch, true);
+        this._render();
+      },
+    });
+
+    this._applyActive();
   }
 
   toggle() {
     this.active = !this.active;
-    this._applyVisibility();
-    if (!this.active) this.readoutEl.classList.add("hidden");
-    else this._showHint();
+    this._applyActive();
   }
 
-  _applyVisibility() {
+  _applyActive() {
     document.body.classList.toggle("authoring", this.active);
-    if (this.active) this._showHint();
-    else this.readoutEl.classList.add("hidden");
+    this.hotspots.setEditMode(this.active);
+    this.panel.classList.toggle("hidden", !this.active);
+    if (!this.active) this.hotspots.setSelected(null);
+    else this._render();
   }
 
-  _showHint() {
-    this.readoutEl.classList.remove("hidden");
-    this.readoutEl.innerHTML = `
-      <div class="ar-title">AUTHORING MODE — on</div>
-      <div class="ar-hint">Click any object to read its position. Press "E" to exit.</div>
-    `;
+  select(id) {
+    this.selectedId = id;
+    this.hotspots.setSelected(id);
+    this._render();
   }
 
-  _report(yaw, pitch, dir) {
-    const y = yaw.toFixed(1);
-    const p = pitch.toFixed(1);
-    const vx = dir.x.toFixed(3);
-    const vy = dir.y.toFixed(3);
-    const vz = dir.z.toFixed(3);
+  _place(id, yaw, pitch) {
+    const h = HOTSPOTS.find((x) => x.id === id);
+    if (!h) return;
+    h.yaw = round1(yaw);
+    h.pitch = round1(pitch);
+    this._recordOverride(id, h.yaw, h.pitch, true);
+    this._render();
+  }
 
-    const snippet = `yaw: ${y}, pitch: ${p},`;
+  _recordOverride(id, yaw, pitch, save) {
+    this.overrides[id] = { yaw: round1(yaw), pitch: round1(pitch) };
+    if (save) this._save();
+  }
 
-    this.readoutEl.classList.remove("hidden");
-    this.readoutEl.innerHTML = `
-      <div class="ar-title">AUTHORING MODE — clicked point</div>
-      <div class="ar-row"><b>yaw</b> ${y}&deg; &nbsp; <b>pitch</b> ${p}&deg;</div>
-      <div class="ar-row ar-vec">dir = (${vx}, ${vy}, ${vz})</div>
-      <div class="ar-copy">Paste into hotspots.config.js:</div>
-      <code class="ar-code">${snippet}</code>
-      <div class="ar-hint">Also logged to console. Press "E" to exit.</div>
+  resetAll() {
+    this.overrides = {};
+    for (const h of HOTSPOTS) {
+      h.yaw = this.original[h.id].yaw;
+      h.pitch = this.original[h.id].pitch;
+    }
+    this._save();
+    this._render();
+  }
+
+  // ---- persistence ------------------------------------------------------
+
+  _load() {
+    try {
+      return JSON.parse(localStorage.getItem(LS_KEY) || "{}");
+    } catch {
+      return {};
+    }
+  }
+
+  _save() {
+    try {
+      localStorage.setItem(LS_KEY, JSON.stringify(this.overrides));
+    } catch {
+      /* ignore */
+    }
+  }
+
+  _applyOverrides() {
+    for (const h of HOTSPOTS) {
+      const o = this.overrides[h.id];
+      if (o) {
+        h.yaw = o.yaw;
+        h.pitch = o.pitch;
+      }
+    }
+  }
+
+  // ---- export -----------------------------------------------------------
+
+  _positionsJSON() {
+    const out = {};
+    for (const h of HOTSPOTS) out[h.id] = { yaw: round1(h.yaw), pitch: round1(h.pitch) };
+    return JSON.stringify(out, null, 2);
+  }
+
+  _copy(text) {
+    const done = () => this._flash("Copied to clipboard ✓");
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, () => this._fallbackCopy(text, done));
+    } else {
+      this._fallbackCopy(text, done);
+    }
+  }
+
+  _fallbackCopy(text, done) {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      document.execCommand("copy");
+      done();
+    } catch {
+      this._flash("Copy failed — select the text below");
+    }
+    document.body.removeChild(ta);
+  }
+
+  _flash(msg) {
+    const el = this.panel.querySelector(".ap-msg");
+    if (el) {
+      el.textContent = msg;
+      clearTimeout(this._flashT);
+      this._flashT = setTimeout(() => {
+        if (el) el.textContent = "";
+      }, 2000);
+    }
+  }
+
+  // ---- render -----------------------------------------------------------
+
+  _render() {
+    if (!this.active) return;
+
+    const rows = HOTSPOTS.map((h) => {
+      const placed = !!this.overrides[h.id];
+      const sel = h.id === this.selectedId ? " selected" : "";
+      return `
+        <li class="ap-row${sel}" data-id="${h.id}">
+          <span class="ap-swatch role-${h.role}"></span>
+          <span class="ap-label">${h.label}</span>
+          <span class="ap-coords">${round1(h.yaw)}, ${round1(h.pitch)}</span>
+          <span class="ap-badge">${placed ? "placed" : "default"}</span>
+        </li>`;
+    }).join("");
+
+    const selName = this.selectedId
+      ? (HOTSPOTS.find((h) => h.id === this.selectedId) || {}).label
+      : null;
+    const hint = selName
+      ? `Selected <b>${selName}</b> — click in the room to place it, or drag its marker.`
+      : `Select a hotspot below, then click in the room to place it.`;
+
+    const click = this.lastClick
+      ? `last click: yaw ${round1(this.lastClick.yaw)}, pitch ${round1(this.lastClick.pitch)}`
+      : "";
+
+    this.panel.innerHTML = `
+      <div class="ap-head">
+        <span class="ap-title">AUTHORING</span>
+        <button class="ap-x" data-act="exit" title="Exit (E)">exit</button>
+      </div>
+      <div class="ap-hint">${hint}</div>
+      <ul class="ap-list">${rows}</ul>
+      <div class="ap-readout">${click}</div>
+      <div class="ap-actions">
+        <button data-act="copy">Copy positions</button>
+        <button data-act="reset" class="ap-danger">Reset all</button>
+      </div>
+      <div class="ap-msg"></div>
     `;
 
-    // Console output (easy to copy).
-    console.log(
-      `%c[authoring] yaw: ${y}, pitch: ${p}  dir=(${vx}, ${vy}, ${vz})`,
-      "color:#7cf;font-weight:bold"
+    // Wire row selection.
+    this.panel.querySelectorAll(".ap-row").forEach((row) => {
+      row.addEventListener("click", () => this.select(row.dataset.id));
+    });
+    // Wire buttons.
+    this.panel.querySelector('[data-act="exit"]').addEventListener("click", () => this.toggle());
+    this.panel.querySelector('[data-act="copy"]').addEventListener("click", () =>
+      this._copy(this._positionsJSON())
     );
-    console.log({ yaw: Number(y), pitch: Number(p), dir: { x: dir.x, y: dir.y, z: dir.z } });
+    this.panel.querySelector('[data-act="reset"]').addEventListener("click", () => {
+      if (confirm("Reset all hotspot positions back to the config defaults?")) this.resetAll();
+    });
   }
 }

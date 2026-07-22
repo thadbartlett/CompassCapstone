@@ -18,9 +18,71 @@ export class Hotspots {
     this.onActivate = onActivate || (() => {});
     this._markers = new Map(); // id -> { hotspot, el }
 
+    // Authoring/edit mode state (off for learners).
+    this._editMode = false;
+    this._editHooks = {}; // { onSelect, onMove, onCommit }
+    this._drag = null;
+
     this._build();
     // Reposition every rendered frame.
     this.viewer.onRender(() => this._reposition());
+
+    // Drag handling for edit mode (gated on this._drag, so no-ops otherwise).
+    window.addEventListener("pointermove", (e) => this._onDragMove(e));
+    window.addEventListener("pointerup", (e) => this._onDragUp(e));
+  }
+
+  // ---- Authoring / edit mode -------------------------------------------
+
+  setEditMode(on) {
+    this._editMode = !!on;
+    if (!on) this.setSelected(null);
+  }
+
+  setEditHooks(hooks) {
+    this._editHooks = hooks || {};
+  }
+
+  // Highlight the currently selected marker (authoring).
+  setSelected(id) {
+    this._selectedId = id;
+    for (const { hotspot, el } of this._markers.values()) {
+      el.classList.toggle("is-selected", hotspot.id === id);
+    }
+  }
+
+  _onMarkerDown(e, hotspot) {
+    if (!this._editMode) return; // normal mode: the click handler runs instead
+    e.preventDefault();
+    e.stopPropagation();
+    this._drag = { hotspot, moved: 0, lastX: e.clientX, lastY: e.clientY };
+  }
+
+  _onDragMove(e) {
+    if (!this._drag) return;
+    this._drag.moved += Math.abs(e.clientX - this._drag.lastX) + Math.abs(e.clientY - this._drag.lastY);
+    this._drag.lastX = e.clientX;
+    this._drag.lastY = e.clientY;
+    if (this._drag.moved < 4) return; // still a click, not a drag yet
+    const a = this.viewer.screenToAngles(e.clientX, e.clientY);
+    if (a) {
+      this._drag.hotspot.yaw = a.yaw;
+      this._drag.hotspot.pitch = a.pitch;
+      this._editHooks.onMove && this._editHooks.onMove(this._drag.hotspot);
+    }
+  }
+
+  _onDragUp() {
+    if (!this._drag) return;
+    const { hotspot, moved } = this._drag;
+    this._drag = null;
+    if (moved < 4) {
+      // Barely moved -> treat as a select.
+      this._editHooks.onSelect && this._editHooks.onSelect(hotspot);
+    } else {
+      // Finished dragging -> commit the new position.
+      this._editHooks.onCommit && this._editHooks.onCommit(hotspot);
+    }
   }
 
   _build() {
@@ -41,11 +103,15 @@ export class Hotspots {
 
       el.addEventListener("click", (e) => {
         e.stopPropagation();
+        if (this._editMode) return; // edit mode handles select/drag via pointer
         const state = getHotspotState(hotspot);
         // Only unlocked or already-complete hotspots are interactive.
         if (state === "locked") return;
         this.onActivate(hotspot);
       });
+
+      // In edit mode, pointerdown begins a select-or-drag on this marker.
+      el.addEventListener("pointerdown", (e) => this._onMarkerDown(e, hotspot));
 
       this.layerEl.appendChild(el);
       this._markers.set(hotspot.id, { hotspot, el });

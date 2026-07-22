@@ -230,20 +230,26 @@ export class Viewer {
     this.renderer.setSize(w, h);
   }
 
-  // Raycast a screen click into the sphere and report yaw/pitch.
-  _emitClick(e) {
+  // Raycast a screen point (client pixels) onto the sphere and report the
+  // yaw/pitch (degrees) and direction vector there. Returns null if it misses
+  // (shouldn't happen from inside the sphere). Used by clicks and by authoring
+  // drag to convert a pointer position into a hotspot position.
+  screenToAngles(clientX, clientY) {
     const ndc = new THREE.Vector2(
-      (e.clientX / window.innerWidth) * 2 - 1,
-      -(e.clientY / window.innerHeight) * 2 + 1
+      (clientX / window.innerWidth) * 2 - 1,
+      -(clientY / window.innerHeight) * 2 + 1
     );
     this._raycaster.setFromCamera(ndc, this.camera);
     const hits = this._raycaster.intersectObject(this.sphere, false);
-    if (!hits.length) return;
-
-    // Direction from center to the hit point.
+    if (!hits.length) return null;
     const dir = hits[0].point.clone().normalize();
-    const { yaw, pitch } = Viewer.dirToAngles(dir);
-    for (const cb of this._onClickHandlers) cb(yaw, pitch, dir, e);
+    return { ...Viewer.dirToAngles(dir), dir };
+  }
+
+  _emitClick(e) {
+    const a = this.screenToAngles(e.clientX, e.clientY);
+    if (!a) return;
+    for (const cb of this._onClickHandlers) cb(a.yaw, a.pitch, a.dir, e);
   }
 
   onClick(cb) {
