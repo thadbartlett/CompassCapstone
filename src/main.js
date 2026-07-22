@@ -73,6 +73,15 @@ function enterExperience() {
   // Authoring mode (for placing hotspots).
   const authoring = new Authoring(viewer, hotspots, readoutEl);
 
+  // Start the learner facing the entry (welcome) hotspot so it's front-and-
+  // center on load. Uses the entry hotspot's current position (incl. any
+  // authoring overrides applied above).
+  const entry = HOTSPOTS.find((h) => h.role === "entry");
+  if (entry) {
+    viewer.yaw = entry.yaw;
+    viewer.pitch = entry.pitch;
+  }
+
   hudEl.classList.remove("hidden");
   updateHud();
 

@@ -84,15 +84,16 @@ body {
 .hotspot-ring {
   width: 100%;
   height: 100%;
-  border: 2px solid var(--accent);
-  box-shadow: 0 0 12px var(--accent-glow);
+  border: 2px solid var(--gold-light);
+  box-shadow: 0 0 12px var(--gold-light-glow);
   animation: pulse 2s ease-out infinite;
 }
 .hotspot-dot {
   width: 34%;
   height: 34%;
-  background: var(--accent);
-  box-shadow: 0 0 10px var(--accent-glow);
+  background: var(--gold-light);
+  box-shadow: 0 0 10px var(--gold-light-glow);
+  opacity: 0.6; /* translucent so the room shows through */
 }
 .hotspot-check,
 .hotspot-lock {
@@ -122,7 +123,7 @@ body {
 @keyframes pulse {
   0% {
     transform: scale(0.85);
-    opacity: 0.9;
+    opacity: 0.5;
   }
   70% {
     transform: scale(1.25);
@@ -133,17 +134,8 @@ body {
   }
 }
 
-/* Role-based colors for the ACTIVE (unlocked) pulse.
-   entry -> blue (default), core -> very light gold, final -> richer gold.
-   Completed (green) and locked (gray) states are unaffected by role. */
-.hotspot.is-unlocked[data-role="core"] .hotspot-ring {
-  border-color: var(--gold-light);
-  box-shadow: 0 0 12px var(--gold-light-glow);
-}
-.hotspot.is-unlocked[data-role="core"] .hotspot-dot {
-  background: var(--gold-light);
-  box-shadow: 0 0 10px var(--gold-light-glow);
-}
+/* Role-based colors for the ACTIVE (unlocked) pulse. entry + core use the base
+   light-gold pulse; final is a richer gold. Locked (gray) states unaffected. */
 .hotspot.is-unlocked[data-role="final"] .hotspot-ring {
   border-color: var(--gold);
   box-shadow: 0 0 12px var(--gold-glow);
@@ -172,18 +164,18 @@ body {
   opacity: 1;
 }
 
-/* Complete state: green check, no pulse. */
+/* Complete state: gold check, no pulse. */
 .hotspot.is-complete .hotspot-ring {
   animation: none;
-  border-color: var(--done);
-  box-shadow: 0 0 10px rgba(87, 217, 138, 0.5);
+  border-color: var(--gold);
+  box-shadow: 0 0 10px var(--gold-glow);
 }
 .hotspot.is-complete .hotspot-dot {
   display: none;
 }
 .hotspot.is-complete .hotspot-check {
   display: block;
-  color: var(--done);
+  color: var(--gold);
 }
 
 /* Locked state: dimmed, no pulse, lock glyph, not interactive. */
@@ -360,7 +352,7 @@ body {
 .modal-complete input {
   width: 18px;
   height: 18px;
-  accent-color: var(--done);
+  accent-color: var(--gold);
   cursor: pointer;
 }
 .modal-status {
@@ -371,7 +363,7 @@ body {
   min-height: 18px;
 }
 .modal-status.done {
-  color: var(--done);
+  color: var(--gold);
 }
 
 /* ---- HUD ------------------------------------------------------------- */
@@ -491,7 +483,7 @@ body {
   height: 10px;
   border-radius: 50%;
   flex: none;
-  background: var(--accent);
+  background: var(--gold-light);
 }
 .ap-swatch.role-core {
   background: var(--gold-light);
