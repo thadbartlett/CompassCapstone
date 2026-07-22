@@ -438,13 +438,32 @@ body {
   gap: 6px;
 }
 .ao-video {
-  display: flex;
-  align-items: center;
-  gap: 10px;
   padding: 9px 12px;
   border-radius: 9px;
   border: 1px solid var(--card-border);
   background: #10161c;
+}
+.ao-video-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ao-embed {
+  margin-top: 10px;
+}
+.ao-embed iframe {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  border-radius: 8px;
+  background: #000;
+}
+.ao-openext {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--muted);
 }
 .ao-video.required {
   border-color: rgba(232, 192, 105, 0.5);
@@ -481,12 +500,15 @@ body {
 }
 .ao-watch {
   flex: none;
-  padding: 6px 12px;
+  padding: 6px 14px;
+  border: none;
   border-radius: 7px;
   background: var(--accent);
   color: #04121d;
   font-size: 13px;
   font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
   text-decoration: none;
 }
 .ao-watch:hover {
