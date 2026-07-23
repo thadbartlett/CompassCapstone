@@ -36,6 +36,21 @@ const hudEl = document.getElementById("hud");
 const hudProgress = document.getElementById("hud-progress");
 const hudReset = document.getElementById("hud-reset");
 const syncStatus = document.getElementById("sync-status");
+const helpButton = document.getElementById("help-button");
+const helpBackdrop = document.getElementById("help-backdrop");
+const helpClose = document.getElementById("help-close");
+
+// Instructions modal (top-right "?"). Available once inside the experience.
+helpButton.addEventListener("click", () => helpBackdrop.classList.remove("hidden"));
+helpClose.addEventListener("click", () => helpBackdrop.classList.add("hidden"));
+helpBackdrop.addEventListener("click", (e) => {
+  if (e.target === helpBackdrop) helpBackdrop.classList.add("hidden");
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && !helpBackdrop.classList.contains("hidden")) {
+    helpBackdrop.classList.add("hidden");
+  }
+});
 
 let viewer, hotspots, interactions;
 
@@ -84,6 +99,7 @@ function enterExperience() {
   }
 
   hudEl.classList.remove("hidden");
+  helpButton.classList.remove("hidden");
   updateHud();
 
   // Debug handle (no secrets are ever on the client). Handy for verifying the

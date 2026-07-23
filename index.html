@@ -71,6 +71,27 @@
       <button id="hud-reset" title="Reset your progress">Reset</button>
     </div>
 
+    <!-- Help button (top-right) + instructions modal -->
+    <button id="help-button" class="help-button hidden" aria-label="How this works" title="How this works">?</button>
+
+    <div id="help-backdrop" class="modal-backdrop hidden">
+      <div class="modal help-modal" role="dialog" aria-modal="true" aria-labelledby="help-title">
+        <button id="help-close" class="modal-close" aria-label="Close">&times;</button>
+        <h2 id="help-title">How this works</h2>
+        <div class="modal-body">
+          <p>You're standing in the middle of a 360° room. Here's how to get around:</p>
+          <ol class="help-steps">
+            <li><strong>Look around.</strong> Click and drag anywhere to turn and explore the room in every direction — things are all around you, not just in front.</li>
+            <li><strong>Start at the green marker.</strong> When you begin, look for the glowing green marker — that's your starting point. Click it to open the welcome and get going.</li>
+            <li><strong>Explore the glowing markers.</strong> Around the room you'll find gold glowing markers, each a new topic. Click any one to open it.</li>
+            <li><strong>Finish each topic.</strong> When you complete one, its marker becomes a gold checkmark ✓. Topics you haven't unlocked yet appear dimmed with a 🔒 — keep going and they'll open up.</li>
+            <li><strong>Reach the Final Message.</strong> Work through everything in the room. Once every section is complete, the Final Message unlocks — that's the finish line.</li>
+          </ol>
+          <p>Your progress is shown in the bottom-left corner. Take your time and explore!</p>
+        </div>
+      </div>
+    </div>
+
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>
