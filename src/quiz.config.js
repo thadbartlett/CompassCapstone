@@ -143,6 +143,27 @@ export const QUIZZES = {
           manageable for both families and the graduation organizers.</p>
         `,
       },
+      {
+        id: "student-drivers",
+        prompt: "What must a Capstone student do before driving to Compass?",
+        options: [
+          { key: "A", text: "Bring their tutor a specialty coffee of their choice for three weeks straight" },
+          { key: "B", text: "Receive verbal permission from a tutor each week" },
+          { key: "C", text: "Have a driver permission form on file with the directors" },
+          { key: "D", text: "Understand where designated parking spaces are for students" },
+        ],
+        correct: "C",
+        feedback: `
+          <p>Before a student may drive to Compass, a completed driver permission
+          form must be on file with the directors.</p>
+          <p>Driving to Compass is a privilege and comes with the responsibility to
+          drive safely and carefully while on church property. If a student drives
+          recklessly or fails to follow campus driving expectations, that privilege
+          may be revoked.</p>
+          <p>Parents should make sure the required form has been submitted before
+          allowing their student to drive to the community day.</p>
+        `,
+      },
     ],
   },
 };
