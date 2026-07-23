@@ -80,8 +80,8 @@ export const HOTSPOTS = [
     label: "Anchored at Home",
     role: "core",
     // Study table with anchor, lamp, Bible, and family photo.
-    yaw: -128.8,
-    pitch: -17.5,
+    yaw: -128.7,
+    pitch: -13.8,
     hitRadius: 34,
     body: `
       <p>Placeholder copy for "Anchored at Home".</p>
@@ -93,8 +93,8 @@ export const HOTSPOTS = [
     label: "Rules for Capstone Students",
     role: "core",
     // Framed checklist board on the right wall.
-    yaw: 29.7,
-    pitch: 8.1,
+    yaw: 30,
+    pitch: 10.4,
     hitRadius: 34,
     body: `
       <p>Placeholder copy for the rules.</p>
@@ -106,8 +106,8 @@ export const HOTSPOTS = [
     label: "Academic Overview",
     role: "core",
     // Large academic bookcase.
-    yaw: -34.3,
-    pitch: 5.2,
+    yaw: -33.4,
+    pitch: 3.9,
     hitRadius: 34,
     // Custom popup: grade-driven video list (see academicVideos.js /
     // videos.config.js). Completion = all grade-matched videos watched.
@@ -118,8 +118,8 @@ export const HOTSPOTS = [
     label: "Final Message",
     role: "final",
     // Brass compass and sealed scroll on the round table.
-    yaw: 47,
-    pitch: -36.4,
+    yaw: 48,
+    pitch: -40.1,
     hitRadius: 34,
     body: `
       <p>Placeholder copy for the final message.</p>
