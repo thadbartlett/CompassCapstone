@@ -12,6 +12,7 @@ import { areAllCoreComplete } from "./gating.js";
 import { sendExperienced, sendCompleted, sendCourseCompleted } from "./xapi.js";
 import { renderAcademicVideos } from "./academicVideos.js";
 import { renderQuiz } from "./quiz.js";
+import { renderLinear } from "./linear.js";
 
 function activityIdFor(hotspot) {
   return `${ACTIVITY_BASE}/${hotspot.id}`;
@@ -61,6 +62,14 @@ export class Interactions {
       this.completeRow.style.display = "none";
       this.statusEl.style.display = "none";
       renderQuiz(this.bodyEl, hotspot, {
+        onComplete: () => this._complete(hotspot),
+      });
+    } else if (hotspot.type === "linear") {
+      // Multi-screen linear interaction (e.g. Welcome): completing all screens
+      // drives completion, so hide the generic checkbox row and status line.
+      this.completeRow.style.display = "none";
+      this.statusEl.style.display = "none";
+      renderLinear(this.bodyEl, hotspot, {
         onComplete: () => this._complete(hotspot),
       });
     } else {

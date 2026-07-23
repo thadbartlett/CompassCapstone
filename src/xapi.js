@@ -25,6 +25,10 @@ const VERBS = {
     id: "http://adlnet.gov/expapi/verbs/answered",
     display: { "en-US": "answered" },
   },
+  responded: {
+    id: "http://adlnet.gov/expapi/verbs/responded",
+    display: { "en-US": "responded" },
+  },
 };
 
 function buildActor() {
@@ -117,6 +121,15 @@ export function sendAnswered(activityId, activityName, { success, response }) {
   sendStatement("answered", activityId, {
     activityName,
     result: { success: !!success, response: String(response) },
+  });
+}
+
+// An UNSCORED response (e.g. "what drew you to Compass?"). Records the choice
+// with no success value.
+export function sendResponded(activityId, activityName, response) {
+  sendStatement("responded", activityId, {
+    activityName,
+    result: { response: String(response) },
   });
 }
 

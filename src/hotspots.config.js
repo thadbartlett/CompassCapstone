@@ -42,12 +42,9 @@ export const HOTSPOTS = [
     yaw: -90.5,
     pitch: 26.4,
     hitRadius: 34,
-    body: `
-      <p><strong>Welcome!</strong> This is placeholder copy for the entry
-      lesson.</p>
-      <p>Look around the room by dragging. Complete this section to unlock the
-      rest of the orientation.</p>
-    `,
+    // Custom popup: 6-screen linear interaction (see linear.js /
+    // linear.config.js). Completion = all six screens finished.
+    type: "linear",
   },
   {
     id: "schedule",
