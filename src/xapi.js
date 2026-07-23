@@ -21,6 +21,10 @@ const VERBS = {
     id: "http://adlnet.gov/expapi/verbs/completed",
     display: { "en-US": "completed" },
   },
+  answered: {
+    id: "http://adlnet.gov/expapi/verbs/answered",
+    display: { "en-US": "answered" },
+  },
 };
 
 function buildActor() {
@@ -105,6 +109,14 @@ export function sendCompleted(activityId, activityName) {
   sendStatement("completed", activityId, {
     activityName,
     result: { completion: true },
+  });
+}
+
+// A quiz answer (correct or incorrect). Tracks each attempt.
+export function sendAnswered(activityId, activityName, { success, response }) {
+  sendStatement("answered", activityId, {
+    activityName,
+    result: { success: !!success, response: String(response) },
   });
 }
 

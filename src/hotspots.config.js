@@ -96,10 +96,9 @@ export const HOTSPOTS = [
     yaw: 30,
     pitch: 10.4,
     hitRadius: 34,
-    body: `
-      <p>Placeholder copy for the rules.</p>
-      <p>A short list of expectations for Capstone students.</p>
-    `,
+    // Custom popup: multiple-choice quiz (see quiz.js / quiz.config.js).
+    // Completion = all questions answered correctly.
+    type: "quiz",
   },
   {
     id: "overview",
