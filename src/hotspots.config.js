@@ -79,9 +79,9 @@ export const HOTSPOTS = [
     yaw: -128.7,
     pitch: -13.8,
     hitRadius: 34,
-    // Custom popup: linear flow (see linear.js / linear.config.js) — a single
-    // "cards" screen with the Anchored at Home page image + six sections.
-    type: "linear",
+    // Custom popup: image-map (see imageMap.js / imageMap.config.js) — the large
+    // Anchored at Home page image with clickable hotspots over its six sections.
+    type: "imagemap",
   },
   {
     id: "rules",

@@ -13,6 +13,7 @@ import { sendExperienced, sendCompleted, sendCourseCompleted } from "./xapi.js";
 import { renderAcademicVideos } from "./academicVideos.js";
 import { renderQuiz } from "./quiz.js";
 import { renderLinear } from "./linear.js";
+import { renderImageMap } from "./imageMap.js";
 
 function activityIdFor(hotspot) {
   return `${ACTIVITY_BASE}/${hotspot.id}`;
@@ -23,6 +24,7 @@ export class Interactions {
     this.onCompleted = onCompleted || (() => {});
 
     this.backdrop = document.getElementById("modal-backdrop");
+    this.modalEl = this.backdrop.querySelector(".modal");
     this.titleEl = document.getElementById("modal-title");
     this.bodyEl = document.getElementById("modal-body");
     this.completeRow = document.querySelector(".modal-complete");
@@ -48,7 +50,17 @@ export class Interactions {
     this._current = hotspot;
     this.titleEl.textContent = hotspot.label;
 
-    if (hotspot.type === "videos") {
+    // Widen the modal for image-map interactions (near-fullscreen).
+    this.modalEl.classList.toggle("modal-wide", hotspot.type === "imagemap");
+
+    if (hotspot.type === "imagemap") {
+      // Large reference image with clickable hotspots (e.g. Anchored at Home).
+      this.completeRow.style.display = "none";
+      this.statusEl.style.display = "none";
+      renderImageMap(this.bodyEl, hotspot, {
+        onComplete: () => this._complete(hotspot),
+      });
+    } else if (hotspot.type === "videos") {
       // Custom Academic Overview popup: grade selector + video list drive
       // completion, so hide the generic checkbox row and status line.
       this.completeRow.style.display = "none";
