@@ -704,6 +704,64 @@ body {
 .lin-reveal-body p {
   margin: 0 0 10px;
 }
+.lin-reveal-body h4 {
+  margin: 18px 0 6px;
+  font-size: 15px;
+  color: var(--gold);
+}
+.lin-reveal-body ul {
+  margin: 0 0 10px;
+  padding-left: 20px;
+}
+.lin-reveal-body li {
+  margin-bottom: 4px;
+}
+
+/* Image / graphic click-to-reveal trigger */
+.lin-image-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 18px;
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  background: #10161c;
+  color: var(--ink);
+  font-family: inherit;
+  cursor: pointer;
+}
+.lin-image-btn:hover {
+  border-color: var(--gold);
+  background: rgba(232, 192, 105, 0.06);
+}
+.lin-photo {
+  display: block;
+  width: 100%;
+  max-width: 420px;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+  transition: transform 0.15s ease;
+}
+.lin-binder {
+  width: 240px;
+  max-width: 100%;
+  height: auto;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.4));
+  transition: transform 0.15s ease;
+}
+.lin-image-btn:hover .lin-photo,
+.lin-image-btn:hover .lin-binder {
+  transform: scale(1.02);
+}
+.lin-image-cap {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gold);
+  text-align: center;
+}
 
 /* footer nav */
 .lin-footer {

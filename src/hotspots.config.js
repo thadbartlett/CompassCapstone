@@ -67,10 +67,9 @@ export const HOTSPOTS = [
     yaw: 179.2,
     pitch: -14.2,
     hitRadius: 34,
-    body: `
-      <p>Placeholder copy for academic expectations.</p>
-      <p>What is expected of students academically.</p>
-    `,
+    // Custom popup: linear flow (see linear.js / linear.config.js). Screen 1 is
+    // the weekly-work notebook; a second topic will be added later.
+    type: "linear",
   },
   {
     id: "anchored",

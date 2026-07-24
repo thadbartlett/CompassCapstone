@@ -43,6 +43,32 @@ function icon(name) {
   return `<svg class="lin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${g}</svg>`;
 }
 
+// Larger decorative graphics used as click-to-reveal triggers.
+const IMAGES = {
+  // A ring binder with colored subject tabs (History/Latin/Rhetoric/English).
+  binder: `
+    <svg class="lin-binder" viewBox="0 0 240 170" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <rect x="12" y="14" width="196" height="144" rx="10" fill="#22314f"/>
+      <rect x="42" y="22" width="150" height="128" rx="3" fill="#f7f7f4"/>
+      <line x1="56" y1="22" x2="56" y2="150" stroke="#e2a3a3" stroke-width="1.3"/>
+      <g stroke="#dbe4ec" stroke-width="1.4">
+        <line x1="60" y1="40" x2="184" y2="40"/><line x1="60" y1="56" x2="184" y2="56"/>
+        <line x1="60" y1="72" x2="184" y2="72"/><line x1="60" y1="88" x2="184" y2="88"/>
+        <line x1="60" y1="104" x2="184" y2="104"/><line x1="60" y1="120" x2="184" y2="120"/>
+        <line x1="60" y1="136" x2="184" y2="136"/>
+      </g>
+      <g stroke="#c4c8ce" stroke-width="3">
+        <circle cx="42" cy="48" r="8"/><circle cx="42" cy="86" r="8"/><circle cx="42" cy="124" r="8"/>
+      </g>
+      <g font-family="system-ui,sans-serif" font-size="8" font-weight="700" fill="#28303a" text-anchor="middle">
+        <rect x="180" y="26" width="52" height="26" rx="4" fill="#f2d06b"/><text x="206" y="42">History</text>
+        <rect x="180" y="58" width="52" height="26" rx="4" fill="#9ccf6b"/><text x="206" y="74">Latin</text>
+        <rect x="180" y="90" width="52" height="26" rx="4" fill="#6bb7e0"/><text x="206" y="106">Rhetoric</text>
+        <rect x="180" y="122" width="52" height="26" rx="4" fill="#b79bd6"/><text x="206" y="138">English</text>
+      </g>
+    </svg>`,
+};
+
 export function renderLinear(container, hotspot, { onComplete }) {
   const flow = LINEAR[hotspot.id];
   if (!flow) {
@@ -140,12 +166,21 @@ export function renderLinear(container, hotspot, { onComplete }) {
   }
 
   function revealBody(s, state) {
-    const panel = state.revealed
-      ? `<div class="lin-reveal-body">${s.body}</div>`
-      : `<button type="button" class="lin-reveal-btn">${s.prompt}</button>`;
+    let trigger;
+    if (state.revealed) {
+      trigger = `<div class="lin-reveal-body">${s.body}</div>`;
+    } else if (s.imageSrc) {
+      // A real photo as the clickable trigger.
+      trigger = `<button type="button" class="lin-image-btn"><img class="lin-photo" src="${s.imageSrc}" alt="" /><span class="lin-image-cap">${s.prompt}</span></button>`;
+    } else if (s.image) {
+      // A named inline-SVG graphic (from IMAGES) as the clickable trigger.
+      trigger = `<button type="button" class="lin-image-btn">${IMAGES[s.image] || ""}<span class="lin-image-cap">${s.prompt}</span></button>`;
+    } else {
+      trigger = `<button type="button" class="lin-reveal-btn">${s.prompt}</button>`;
+    }
     return `
       <div class="lin-intro">${s.intro || ""}</div>
-      ${panel}`;
+      ${trigger}`;
   }
 
   // ---- main render ------------------------------------------------------
@@ -163,6 +198,11 @@ export function renderLinear(container, hotspot, { onComplete }) {
     const dots = screens
       .map((_, k) => `<span class="lin-dot${k === i ? " on" : ""}${met(k) ? " done" : ""}"></span>`)
       .join("");
+    // Only show the step indicator for multi-screen flows.
+    const steps =
+      N > 1
+        ? `<div class="lin-steps">${dots}<span class="lin-stepcount">Screen ${i + 1} of ${N}</span></div>`
+        : "";
 
     const isLast = i === N - 1;
     const canContinue = met(i);
@@ -170,7 +210,7 @@ export function renderLinear(container, hotspot, { onComplete }) {
     const nextLabel = isLast ? (completed ? "Completed &#10003;" : "Finish") : "Continue";
 
     container.innerHTML = `
-      <div class="lin-steps">${dots}<span class="lin-stepcount">Screen ${i + 1} of ${N}</span></div>
+      ${steps}
       <div class="lin-heading">${icon(s.icon)}<span>${s.heading}</span></div>
       <div class="lin-screen">${body}</div>
       <div class="lin-footer">
@@ -229,7 +269,9 @@ export function renderLinear(container, hotspot, { onComplete }) {
         });
       });
     } else if (s.kind === "reveal") {
-      const btn = container.querySelector(".lin-reveal-btn");
+      const btn =
+        container.querySelector(".lin-reveal-btn") ||
+        container.querySelector(".lin-image-btn");
       if (btn) btn.addEventListener("click", () => {
         state.revealed = true;
         render();

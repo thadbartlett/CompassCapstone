@@ -197,4 +197,48 @@ export const LINEAR = {
       },
     ],
   },
+
+  // ---- ACADEMIC EXPECTATIONS ----------------------------------------
+  // Starts with one screen (the weekly-work notebook). A second topic
+  // (students arriving with work done) will be added as screen 2 later; when it
+  // is, completion will require finishing both screens.
+  academics: {
+    screens: [
+      {
+        kind: "reveal",
+        icon: "book",
+        heading: "Set Up a Weekly Work Notebook",
+        imageSrc: "/public/notebook.png",
+        prompt: "Click the notebook to learn how to organize your student's weekly work.",
+        body: `
+          <p>Each student should have a binder or notebook divided by subject.</p>
+          <p>Students will use it to complete and store their weekly work for each
+          class. Keeping everything organized in one place helps students arrive
+          prepared and know exactly where to find their work during class.</p>
+          <p>Throughout the weekly guides, you may see instructions such as:</p>
+          <ul>
+            <li>Complete this and place it in your notebook.</li>
+            <li>Jot your answer in your notebook.</li>
+            <li>Bring your notebook to class.</li>
+          </ul>
+          <p>This binder or notebook is what those instructions are referring to.</p>
+
+          <h4>University Ready Writing</h4>
+          <p>Students in 10th and 11th grade will organize their University Ready
+          Writing notebook according to IEW's specific instructions. The videos for
+          this class will walk you through exactly how to set up that notebook.</p>
+
+          <h4>Best Practice</h4>
+          <p>Science work can accumulate quickly throughout the year. You may find
+          it helpful to use a separate science notebook or binder with its own tabs.
+          This is optional, but it is something to consider when deciding how to
+          organize your student's materials.</p>
+
+          <h4>Closing Reminder</h4>
+          <p>The exact system you choose may vary, but the goal is simple: your
+          student should have one organized place for weekly work so it is completed,
+          easy to find, and ready to bring to class.</p>`,
+      },
+    ],
+  },
 };
