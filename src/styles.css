@@ -639,10 +639,28 @@ body {
 .lin-card:hover {
   border-color: var(--gold);
 }
+.lin-card:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
 .lin-card.open {
   border-color: rgba(232, 192, 105, 0.5);
   background: rgba(232, 192, 105, 0.06);
   cursor: default;
+}
+.lin-cards-photo {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+  margin-bottom: 12px;
+}
+.lin-cards-instruct {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gold);
+  margin-bottom: 12px;
 }
 .lin-card-head {
   display: flex;
@@ -669,6 +687,12 @@ body {
   line-height: 1.6;
   color: #d6dde3;
 }
+.lin-card-body p {
+  margin: 0 0 8px;
+}
+.lin-card-body p:last-child {
+  margin-bottom: 0;
+}
 .lin-summary {
   margin-top: 14px;
   padding: 14px;
@@ -678,6 +702,18 @@ body {
   color: #d6dde3;
   font-size: 14px;
   line-height: 1.6;
+}
+.lin-summary p {
+  margin: 0 0 10px;
+}
+.lin-summary p:last-child {
+  margin-bottom: 0;
+}
+.lin-summary-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--gold);
+  margin-bottom: 8px;
 }
 
 /* reveal */

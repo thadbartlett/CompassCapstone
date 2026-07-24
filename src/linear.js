@@ -35,6 +35,10 @@ const ICONS = {
   bulb: '<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10c1 1 1 2 1 3h6c0-1 0-2 1-3a6 6 0 0 0-4-10z"/>',
   scales: '<path d="M12 4v16M6 20h12M4 8h16"/><path d="M8 8l-3 6a3 3 0 0 0 6 0zM16 8l3 6a3 3 0 0 1-6 0z"/>',
   sprout: '<path d="M12 21v-8"/><path d="M12 13c0-3-2-5-5-5 0 3 2 5 5 5z"/><path d="M12 13c0-4 3-6 6-6 0 4-3 6-6 6z"/>',
+  music: '<path d="M9 17V4l11-2v13"/><circle cx="6" cy="17" r="3"/><circle cx="17" cy="15" r="3"/>',
+  art: '<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 16l5-4 4 3 3-3 6 5"/>',
+  pen: '<path d="M4 20l3.5-1L18 8.5 15.5 6 5 16.5z"/><path d="M14 7l3 3"/>',
+  people: '<circle cx="8" cy="8" r="3"/><path d="M2.5 20a5.5 5.5 0 0 1 11 0"/><circle cx="17" cy="9" r="2.4"/><path d="M14.5 20a5 5 0 0 1 7-4.3"/>',
 };
 
 function icon(name) {
@@ -122,21 +126,29 @@ export function renderLinear(container, hotspot, { onComplete }) {
   }
 
   function cardsBody(s, state) {
+    const img = s.imageSrc
+      ? `<img class="lin-cards-photo" src="${s.imageSrc}" alt="" />`
+      : "";
+    const instruct = s.imagePrompt
+      ? `<div class="lin-cards-instruct">${s.imagePrompt}</div>`
+      : "";
+    // Cards are clickable DIVs (not buttons) so their bodies can hold rich HTML.
     const cards = s.cards
       .map((c, k) => {
         const open = state.opened.has(k);
         return `
-          <button type="button" class="lin-card${open ? " open" : ""}" data-k="${k}">
-            <span class="lin-card-head">${icon(c.icon)}<span class="lin-card-title">${c.title}</span>
-              <span class="lin-card-chev">${open ? "&#9660;" : "&#9654;"}</span></span>
-            ${open ? `<span class="lin-card-body">${c.body}</span>` : ""}
-          </button>`;
+          <div class="lin-card${open ? " open" : ""}" data-k="${k}" role="button" tabindex="0" aria-expanded="${open}">
+            <div class="lin-card-head">${icon(c.icon)}<span class="lin-card-title">${c.title}</span>
+              <span class="lin-card-chev">${open ? "&#9660;" : "&#9654;"}</span></div>
+            ${open ? `<div class="lin-card-body">${c.body}</div>` : ""}
+          </div>`;
       })
       .join("");
     const summary =
       state.opened.size === s.cards.length ? `<div class="lin-summary">${s.summary}</div>` : "";
     return `
       <div class="lin-intro">${s.intro || ""}</div>
+      ${img}${instruct}
       <div class="lin-cards">${cards}</div>
       ${summary}`;
   }
@@ -252,9 +264,19 @@ export function renderLinear(container, hotspot, { onComplete }) {
       });
     } else if (s.kind === "cards") {
       container.querySelectorAll(".lin-card").forEach((b) => {
-        b.addEventListener("click", () => {
-          state.opened.add(Number(b.dataset.k));
-          render();
+        const openCard = () => {
+          const k = Number(b.dataset.k);
+          if (!state.opened.has(k)) {
+            state.opened.add(k);
+            render();
+          }
+        };
+        b.addEventListener("click", openCard);
+        b.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            openCard();
+          }
         });
       });
     } else if (s.kind === "question") {
