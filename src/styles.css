@@ -854,18 +854,42 @@ body {
 .imgmap-intro p {
   margin: 0 0 10px;
 }
+.imgmap-topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 0 10px;
+}
 .imgmap-prompt {
   font-size: 15px;
   font-weight: 700;
   color: var(--gold);
-  margin: 4px 0 8px;
+  flex: 1;
+  margin: 0;
 }
 .imgmap-progress {
   font-size: 13px;
   font-weight: 700;
   color: var(--muted);
   min-height: 16px;
-  margin-bottom: 10px;
+  margin: 0;
+}
+.imgmap-zoom {
+  flex: none;
+  border: 1px solid var(--card-border);
+  background: transparent;
+  color: var(--ink);
+  border-radius: 7px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.imgmap-zoom:hover {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 /* stage: the big image + positioned hotspots */
@@ -882,6 +906,39 @@ body {
 }
 .imgmap-imgwrap.authoring {
   cursor: crosshair;
+}
+
+/* zoom overlay (View full size) */
+.imgmap-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: rgba(0, 0, 0, 0.92);
+  overflow: auto;
+  padding: 24px;
+  text-align: center;
+}
+.imgmap-lightbox-img {
+  display: inline-block;
+  width: 1800px;
+  max-width: none;
+  height: auto;
+  border-radius: 4px;
+}
+.imgmap-lightbox-close {
+  position: fixed;
+  top: 14px;
+  right: 20px;
+  z-index: 301;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
 }
 .imgmap-hot {
   position: absolute;
@@ -1172,6 +1229,49 @@ body {
   font-family: ui-monospace, "Cascadia Code", monospace;
   font-size: 12px;
   resize: vertical;
+}
+
+/* desktop: fixed-height popup; the page image fits with no scrolling so every
+   hotspot and the side panel are always fully visible */
+@media (min-width: 721px) {
+  .modal.modal-wide {
+    height: 92vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .modal.modal-wide #modal-body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .imgmap-stage {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .imgmap-imgwrap {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: normal;
+  }
+  .imgmap-img {
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+  }
+  /* on desktop the closing summary shows in the side panel, not inline */
+  .imgmap-summary {
+    display: none;
+  }
 }
 
 /* narrow screens: hide the image stage, show the stacked cards */
